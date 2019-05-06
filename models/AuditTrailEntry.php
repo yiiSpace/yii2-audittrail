@@ -150,7 +150,11 @@ class AuditTrailEntry extends \yii\db\ActiveRecord
 		$change->attr = $attr;
 		$change->from = $from;
 		$change->to = $to;
-		$change->ext = $ext;
+		if(!empty($ext)){
+		    // we only save it to db when it is specified 
+         	   $change->ext = $ext;
+       		}
+
 		$this->_changes[] = $change;
 	}
 	

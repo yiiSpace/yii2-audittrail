@@ -37,6 +37,14 @@ class AuditTrailBehavior extends \yii\base\Behavior
 	 */
 	public $ignoredAttributes = [];
 
+    /**
+     * @var array list of attributes that this behavior should apply to. If this property is not set,
+     * then the behavior applies to all attributes , unless they are listed in [[ignoredAttributes]].
+     *
+     * @see ignoredAttributes
+     */
+	public $onlyAttributes = [];
+
 	/**
 	 * @var \Closure|null optional closure to return the timestamp of an event. It needs to be
 	 * in the format 'function() { }' returning an integer. If not set 'time()' is used.
@@ -206,6 +214,7 @@ class AuditTrailBehavior extends \yii\base\Behavior
 	 */
 	protected function createPreparedAuditTrailEntry($changeKind)
 	{
+	    // TODO here we can specify diffrent class which should be the sub-class of AuditTrailEntry , such we can save data to diffrent tables
 		$entry = new AuditTrailEntry([
 			'model_type'=>$this->owner->className(),
 			'foreign_pk'=>$this->createPrimaryKeyJson(),
@@ -273,6 +282,11 @@ class AuditTrailBehavior extends \yii\base\Behavior
 	{
 		//get cols from db-schema
 		$cols = array_keys($this->owner->getTableSchema()->columns);
+
+		// return if onlyAttributes is not empty
+		if(!empty($this->onlyAttributes)){
+		    return array_intersect($this->onlyAttributes, $cols) ;
+        }
 
 		//return if no ignored cols
 		if (empty($this->ignoredAttributes)) return $cols;

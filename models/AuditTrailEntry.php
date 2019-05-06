@@ -142,13 +142,15 @@ class AuditTrailEntry extends \yii\db\ActiveRecord
 	 * @param string $attr the name of the attribute
 	 * @param mixed $from the old value
 	 * @param mixed $to the new value
+	 * @param mixed|array $ext the extra data for current attribute
 	 */
-	public function addChange($attr, $from, $to)
+	public function addChange($attr, $from, $to, $ext=[])
 	{
 		$change = new \stdClass();
 		$change->attr = $attr;
 		$change->from = $from;
 		$change->to = $to;
+		$change->ext = $ext;
 		$this->_changes[] = $change;
 	}
 	

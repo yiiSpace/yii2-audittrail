@@ -45,6 +45,25 @@ class AuditTrailBehavior extends \yii\base\Behavior
      */
 	public $onlyAttributes = [];
 
+    /**
+     * @var null|\Closure
+     * ~~~php
+     *
+     * function($auditType , $model , $attr, $from, $to){
+     *
+     * }
+     *
+     * // TODO  we could use $event param to simplify the params passing
+     * function ($event)
+     * {
+     *     // return value will be assigned to the ext attribute related to current attribute
+     * }
+     *
+     * ~~~
+     *
+     */
+	public $extraAttributeData = null ;
+
 	/**
 	 * @var \Closure|null optional closure to return the timestamp of an event. It needs to be
 	 * in the format 'function() { }' returning an integer. If not set 'time()' is used.
@@ -153,7 +172,12 @@ class AuditTrailBehavior extends \yii\base\Behavior
 					continue;
 				}
 
-				$entry->addChange($attrName, null, $newVal);
+				$extData = null;
+				if(is_callable($this->extraAttributeData)){
+				    $extData = call_user_func($this->extraAttributeData,
+                        self::AUDIT_TYPE_INSERT,$this->owner,$attrName, null, $newVal);
+                }
+				$entry->addChange($attrName, null, $newVal,$extData);
 			}
 		}
 
@@ -188,7 +212,13 @@ class AuditTrailBehavior extends \yii\base\Behavior
 				$newVal = null;
 			}
 
-			$entry->addChange($attrName, $oldVal, $newVal);
+		        $extData = null;
+		        if(is_callable($this->extraAttributeData)){
+			    $extData = call_user_func($this->extraAttributeData,
+			    self::AUDIT_TYPE_UPDATE,$this->owner,$attrName, $oldVal, $newVal);
+		        }
+
+			$entry->addChange($attrName, $oldVal, $newVal,$extData);
 		}
 
 		//only save when there were changes
@@ -222,6 +252,9 @@ class AuditTrailBehavior extends \yii\base\Behavior
 			'user_id'=>$this->getUserId(),
 			'type'=>$changeKind,
 		]);
+		// TODO set additional attributes
+        // $entry->setAttributes([]);
+
 		return $entry;
 	}
 
